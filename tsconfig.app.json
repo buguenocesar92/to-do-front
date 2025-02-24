@@ -1,0 +1,25 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": [
+    "env.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+    "src/**/*.js", // Incluye archivos JavaScript
+    "src/axiosConfig.ts"
+  ],
+  "exclude": ["src/**/__tests__/*"],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "baseUrl": ".", // Establece la raíz del proyecto como base para las rutas
+    "paths": {
+      "@/*": ["./src/*"] // Soporte para alias en importaciones
+    },
+    "typeRoots": ["./node_modules/@types", "./src"], // Asegura que TypeScript detecte los tipos personalizados
+    "strict": true, // Habilita la verificación estricta para TypeScript
+    "esModuleInterop": true, // Interoperabilidad con módulos CommonJS
+    "allowJs": true, // Permite usar archivos JavaScript
+    "checkJs": false, // Evita verificaciones estrictas en JavaScript
+    "resolveJsonModule": true, // Permite importar archivos JSON
+    "skipLibCheck": true // Omite la comprobación de archivos de tipos en bibliotecas
+  }
+}
