@@ -12,4 +12,4 @@ export interface LoginResponse {
 
 // Alias para semántica, opcional
 export type LoginPayload = AuthPayload;
-export type RegisterUser = AuthPayload & { name?: string }; // Opcionalmente extiende si se necesitan nuevos campos
+export type RegisterUser = AuthPayload & { name: string }; // Opcionalmente extiende si se necesitan nuevos campos

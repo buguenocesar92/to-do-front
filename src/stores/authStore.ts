@@ -1,7 +1,7 @@
 // src/stores/authStore.ts
 import { defineStore } from 'pinia';
-import { loginUser, logoutUser, fetchUserData } from '@/services/AuthService';
-import type { AuthPayload } from '@/types/AuthTypes';
+import { loginUser, logoutUser, fetchUserData, registerUser } from '@/services/AuthService';
+import type { AuthPayload, RegisterUser } from '@/types/AuthTypes';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -74,6 +74,23 @@ export const useAuthStore = defineStore('auth', {
         this.permissions = permissions;
       } catch (error) {
         console.error('Error fetching user data:', error);
+      }
+    },
+    async register(payload: RegisterUser) {
+      try {
+        const { access_token, refresh_token } = await registerUser(payload);
+
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+
+        this.accessToken = access_token;
+        this.refreshToken = refresh_token;
+        this.isAuthenticated = true;
+
+        await this.fetchUserData();
+      } catch (error) {
+        console.error('Registration failed:', error);
+        throw error;
       }
     },
   },

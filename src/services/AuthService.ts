@@ -20,3 +20,10 @@ export const fetchUserData = async (): Promise<{ name: string; email: string; ro
     permissions: response.data.permissions || [],
   };
 };
+
+
+// src/services/AuthService.ts (añadir esta función)
+export const registerUser = async (payload: AuthPayload): Promise<LoginResponse> => {
+  const response = await axios.post('/auth/register', payload);
+  return response.data;
+};

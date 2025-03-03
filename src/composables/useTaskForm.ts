@@ -1,74 +1,48 @@
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref } from 'vue';
 import { fetchTask, createTask, updateTask } from '@/services/TaskService';
-import { useNotification } from '@/composables/useNotification';
-import { useFormValidation } from '@/composables/useFormValidation';
 import type { TaskPayload } from '@/types/TaskTypes';
 
 /**
- * useTaskForm: Encapsula toda la lógica para el formulario de tareas.
- * - Carga la tarea en modo edición.
- * - Gestiona la creación/actualización.
- * - Maneja estados de carga y errores.
+ * useTaskForm: Maneja el estado del formulario de tarea, incluyendo carga, envío y errores.
  */
 export function useTaskForm() {
-  // Accedemos a la ruta y el router para navegación y parámetros.
-  const route = useRoute();
-  const router = useRouter();
-
-  // Extraemos funciones de notificación y validación.
-  const { showSuccessNotification, showErrorNotification } = useNotification();
-  const { errors, errorMessage, handleValidationError } = useFormValidation();
-
-  // Estados reactivos para el formulario.
+  const task = ref<TaskPayload>({ id: 0, title: '', description: '', completed: false });
   const isEditing = ref(false);
   const isLoading = ref(false);
-  const task = ref<TaskPayload>({ id: 0, title: '', description: '', completed: false });
+  const errors = ref<{ [key: string]: string[] }>({});
 
-  // Función para enviar el formulario: crea o actualiza la tarea.
-  async function handleSubmit() {
+  async function loadTask(id: number) {
+    isLoading.value = true;
     try {
-      isLoading.value = true;
+      const fetchedTask = await fetchTask(id);
+      task.value = fetchedTask;
+    } catch (err) {
+      console.error('Error al cargar la tarea:', err);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function handleSubmit() {
+    isLoading.value = true;
+    errors.value = {};
+    try {
       if (isEditing.value) {
-        await updateTask(Number(route.params.id), task.value);
-        showSuccessNotification('Éxito', 'Tarea actualizada correctamente');
+        const updated = await updateTask(task.value.id, task.value);
+        task.value = updated;
       } else {
-        await createTask(task.value);
-        showSuccessNotification('Éxito', 'Tarea creada correctamente');
+        const created = await createTask(task.value);
+        task.value = created;
       }
-      router.push({ name: 'Tasks' });
-    } catch (error) {
-      handleValidationError(error);
-      if (errorMessage.value) {
-        showErrorNotification('Error', errorMessage.value);
+    } catch (err: any) {
+      console.error('Error al guardar la tarea:', err);
+      if (err.response && err.response.data && err.response.data.errors) {
+        errors.value = err.response.data.errors;
       }
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Función para cargar la tarea en modo edición.
-  async function loadTask() {
-    if (route.name === 'TaskEdit') {
-      isEditing.value = true;
-      try {
-        const fetchedTask = await fetchTask(Number(route.params.id));
-        if (fetchedTask) {
-          task.value = fetchedTask;
-        }
-      } catch (error) {
-        handleValidationError(error);
-        if (errorMessage.value) {
-          showErrorNotification('Error', errorMessage.value);
-        }
-      }
-    }
-  }
-
-  // Cargar la tarea cuando se monta el componente.
-  onMounted(() => {
-    loadTask();
-  });
-
-  return { task, isEditing, isLoading, errors, handleSubmit };
+  return { task, isEditing, isLoading, errors, handleSubmit, loadTask };
 }
