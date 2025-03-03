@@ -6,6 +6,8 @@ import AccessDenied from '@/views/AccessDenied.vue';
 import TaskManager from '@/views/Task/TaskManager.vue';
 import TaskForm from '@/views/Task/TaskForm.vue';
 import Landing from '@/views/Landing.vue';
+import RolePermissionManager from '@/views/RolesPermissions/RolePermissionManager.vue';
+import RolePermissionEdit from '@/views/RolesPermissions/RolePermissionEdit.vue';
 
 export const routes = [
   {
@@ -64,5 +66,18 @@ export const routes = [
   {
     path: '/:pathMatch(.*)*',
     redirect: '/404',
+  },
+  {
+    path: '/roles-permissions',
+    name: 'RolePermissionManager',
+    component: RolePermissionManager,
+    meta: { requiresAuth: true, sidebar: true, label: 'Roles y Permisos', icon: 'mdi-shield-account' },
+  },
+  {
+    path: '/role-permission-edit/:roleId',
+    name: 'RolePermissionEdit',
+    component: RolePermissionEdit,
+    meta: { requiresAuth: true, sidebar: false },
+    props: true,
   },
 ];
