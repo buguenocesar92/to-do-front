@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
 
 interface SidebarItem {
   label: string;

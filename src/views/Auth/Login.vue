@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineOptions } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useFormValidation } from '@/composables/useFormValidation';
@@ -8,9 +8,6 @@ import FormInput from '@/components/FormInput.vue';
 import Navbar from "@/components/Navbars/AuthNavbar.vue";
 import FooterComponent from "@/components/Footers/Footer.vue";
 import BackgroundSection from "@/components/BackgroundSection.vue";
-
-// Define un nombre interno para el componente (opcional, útil para devtools)
-defineOptions({ name: 'UserLogin' });
 
 // Hooks de Vue Router y Auth
 const router = useRouter();

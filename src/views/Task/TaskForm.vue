@@ -1,9 +1,19 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import AdminWrapper from '@/components/AdminWrapper.vue';
 import { useTaskForm } from '@/composables/useTaskForm';
 
-// Extraemos la lógica y el estado del composable.
-const { task, isEditing, isLoading, errors, handleSubmit } = useTaskForm();
+const { task, isEditing, isLoading, errors, handleSubmit, loadTask } = useTaskForm();
+const route = useRoute();
+
+onMounted(() => {
+  const taskId = Number(route.params.id);
+  if (taskId) {
+    isEditing.value = true;
+    loadTask(taskId);
+  }
+});
 </script>
 
 <template>

@@ -1,23 +1,30 @@
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { fetchTask, createTask, updateTask } from '@/services/TaskService';
+import { useNotification } from '@/composables/useNotification';
+import { useFormValidation } from '@/composables/useFormValidation';
 import type { TaskPayload } from '@/types/TaskTypes';
 
-/**
- * useTaskForm: Maneja el estado del formulario de tarea, incluyendo carga, envío y errores.
- */
 export function useTaskForm() {
   const task = ref<TaskPayload>({ id: 0, title: '', description: '', completed: false });
   const isEditing = ref(false);
   const isLoading = ref(false);
   const errors = ref<{ [key: string]: string[] }>({});
+  const router = useRouter();
+
+  const { showSuccessNotification, showErrorNotification } = useNotification();
+  const { errorMessage, handleValidationError } = useFormValidation();
 
   async function loadTask(id: number) {
     isLoading.value = true;
     try {
       const fetchedTask = await fetchTask(id);
       task.value = fetchedTask;
-    } catch (err) {
-      console.error('Error al cargar la tarea:', err);
+    } catch (error) {
+      handleValidationError(error);
+      if (errorMessage.value) {
+        showErrorNotification('Error al cargar la tarea', errorMessage.value);
+      }
     } finally {
       isLoading.value = false;
     }
@@ -28,16 +35,17 @@ export function useTaskForm() {
     errors.value = {};
     try {
       if (isEditing.value) {
-        const updated = await updateTask(task.value.id, task.value);
-        task.value = updated;
+        await updateTask(task.value.id, task.value);
+        showSuccessNotification('Éxito', 'Tarea actualizada correctamente');
       } else {
-        const created = await createTask(task.value);
-        task.value = created;
+        await createTask(task.value);
+        showSuccessNotification('Éxito', 'Tarea creada correctamente');
       }
-    } catch (err: any) {
-      console.error('Error al guardar la tarea:', err);
-      if (err.response && err.response.data && err.response.data.errors) {
-        errors.value = err.response.data.errors;
+      router.push('/tasks');
+    } catch (error) {
+      handleValidationError(error);
+      if (errorMessage.value) {
+        showErrorNotification('Error al guardar la tarea', errorMessage.value);
       }
     } finally {
       isLoading.value = false;
