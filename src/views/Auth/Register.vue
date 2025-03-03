@@ -1,65 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
-import { useFormValidation } from '@/composables/useFormValidation';
-import { useNotification } from '@/composables/useNotification';
-import type { RegisterUser } from '@/types/AuthTypes';
-
-// Components
-import FormInput from '@/components/FormInput.vue';
 import Navbar from "@/components/Navbars/AuthNavbar.vue";
 import FooterComponent from "@/components/Footers/Footer.vue";
 import BackgroundSection from "@/components/BackgroundSection.vue";
+import FormInput from '@/components/FormInput.vue';
+import { useRegisterForm } from '@/composables/useRegisterForm';
 
-// Hooks
-const router = useRouter();
-const authStore = useAuthStore();
-const { errors, errorMessage, handleValidationError } = useFormValidation();
-const { showErrorNotification } = useNotification();
-
-// Estado reactivo
-const form = ref<RegisterUser>({
-  name: '',
-  email: '',
-  password: '',
-});
-const passwordConfirmation = ref('');
-const isLoading = ref(false);
-
-// Validación de contraseñas
-const validatePasswords = () => {
-  if (form.value.password !== passwordConfirmation.value) {
-    throw new Error('Las contraseñas no coinciden');
-  }
-  if (form.value.password.length < 8) {
-    throw new Error('La contraseña debe tener al menos 8 caracteres');
-  }
-};
-
-// Manejo del registro
-async function handleRegister() {
-  isLoading.value = true;
-  errors.value = {};
-  errorMessage.value = null;
-
-  try {
-    validatePasswords();
-    await authStore.register(form.value);
-
-    form.value = { name: '', email: '', password: '' };
-    passwordConfirmation.value = '';
-
-    router.push('/dashboard');
-  } catch (error) {
-    handleValidationError(error);
-    if (errorMessage.value) {
-      await showErrorNotification('Error de Registro', errorMessage.value);
-    }
-  } finally {
-    isLoading.value = false;
-  }
-}
+// Extraemos la lógica del formulario desde el composable
+const { form, passwordConfirmation, isLoading, errors, errorMessage, handleRegister } = useRegisterForm();
 </script>
 
 <template>
