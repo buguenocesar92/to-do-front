@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { fetchRolesWithPermissions, syncRoutePermissions } from '@/services/RolePermissionService';
+import {
+  fetchRolesWithPermissions,
+  syncRoutePermissions,
+  deleteRole
+} from '@/services/RolePermissionService';
 import { useNotification } from '@/composables/useNotification';
 import { useFormValidation } from '@/composables/useFormValidation';
 import type { Role, Permission } from '@/types/RoleTypes';
 import AdminWrapper from '@/components/AdminWrapper.vue';
 
-// Estado local
 const roles = ref<Role[]>([]);
-const allPermissions = ref<Permission[]>([]); // Podrías usarlo más adelante
+const allPermissions = ref<Permission[]>([]);
 
 const headers = [
   { title: 'Nombre del Rol', value: 'name' },
@@ -22,12 +25,8 @@ const router = useRouter();
 const { showErrorNotification, showSuccessNotification } = useNotification();
 const { errorMessage, handleValidationError } = useFormValidation();
 
-/**
- * Carga roles y permisos
- */
 async function fetchRoles() {
   try {
-    // Desestructuramos el objeto que retorna el servicio: { roles, permissions }
     const { roles: fetchedRoles, permissions: fetchedPermissions } = await fetchRolesWithPermissions();
     roles.value = fetchedRoles;
     allPermissions.value = fetchedPermissions;
@@ -39,9 +38,6 @@ async function fetchRoles() {
   }
 }
 
-/**
- * Navega a la pantalla de edición de un rol
- */
 function goToRoleEdit(roleId: number) {
   try {
     router.push({ name: 'RolePermissionEdit', params: { roleId: roleId.toString() } });
@@ -53,12 +49,9 @@ function goToRoleEdit(roleId: number) {
   }
 }
 
-/**
- * Navega a la pantalla para crear un rol.
- */
 function goToCreateRole() {
   try {
-    router.push({ name: 'RoleCreate' }); // Asegúrate de tener definido esta ruta
+    router.push({ name: 'RoleCreate' });
   } catch (error) {
     handleValidationError(error);
     if (errorMessage.value) {
@@ -67,17 +60,10 @@ function goToCreateRole() {
   }
 }
 
-/**
- * Llama al endpoint para sincronizar rutas y permisos.
- */
 async function syncRoutes() {
   try {
     const response = await syncRoutePermissions();
-    showSuccessNotification(
-      'Cambios Guardados',
-       response.output + ' - ' + response.message
-    );
-    // Opcional: volver a cargar los roles para ver cambios
+    showSuccessNotification('Cambios Guardados', response.output + ' - ' + response.message);
     await fetchRoles();
   } catch (error) {
     handleValidationError(error);
@@ -87,7 +73,22 @@ async function syncRoutes() {
   }
 }
 
-// Cargar roles al montar el componente
+async function deleteRoleAction(roleId: number) {
+  if (!confirm('¿Estás seguro de eliminar este rol? Se removerá el rol de los usuarios, pero los usuarios no se eliminarán.')) {
+    return;
+  }
+  try {
+    await deleteRole(roleId);
+    showSuccessNotification('Éxito', 'Rol eliminado correctamente');
+    await fetchRoles();
+  } catch (error) {
+    handleValidationError(error);
+    if (errorMessage.value) {
+      showErrorNotification('Error', errorMessage.value);
+    }
+  }
+}
+
 onMounted(fetchRoles);
 </script>
 
@@ -98,12 +99,10 @@ onMounted(fetchRoles);
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Gestión de Roles y Permisos</h1>
         <div class="flex gap-4">
-          <!-- Botón para crear un rol -->
           <v-btn color="success" @click="goToCreateRole">
             <v-icon left>mdi-plus</v-icon>
             Crear Rol
           </v-btn>
-          <!-- Botón para sincronizar rutas y permisos -->
           <v-btn color="primary" @click="syncRoutes">
             <v-icon left>mdi-sync</v-icon>
             Sincronizar Rutas y Permisos
@@ -140,10 +139,13 @@ onMounted(fetchRoles);
         <!-- Acciones -->
         <template #item.actions="{ item }">
           <div class="flex gap-2">
-            <!-- Botón Editar -->
             <v-btn color="primary" @click="goToRoleEdit(item.id)" class="ma-2 mr-2">
               <v-icon start>mdi-pencil</v-icon>
               Editar
+            </v-btn>
+            <v-btn color="red" @click="deleteRoleAction(item.id)" class="ma-2">
+              <v-icon left>mdi-delete</v-icon>
+              Eliminar
             </v-btn>
           </div>
         </template>

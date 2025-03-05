@@ -50,3 +50,11 @@ export const syncRoutePermissions = async (): Promise<{ message: string; output:
   const { data } = await axios.post('/roles/with-permissions/sync');
   return data;
 };
+
+/**
+ * Eliminar un rol.
+ */
+export const deleteRole = async (roleId: number | string): Promise<{ message: string }> => {
+  const { data } = await axios.delete(`/roles/${roleId}`);
+  return data;
+};
