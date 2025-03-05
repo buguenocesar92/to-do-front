@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, defineOptions } from 'vue';
 import { useRouter } from 'vue-router';
-import GoToRegisterButton from '@/components/GoToRegisterButton.vue';
-import { fetchRolesWithPermissions } from '@/services/RolePermissionService';
+import { fetchRolesWithPermissions, syncRoutePermissions } from '@/services/RolePermissionService';
 import { useNotification } from '@/composables/useNotification';
 import { useFormValidation } from '@/composables/useFormValidation';
 import type { Role, Permission } from '@/types/RoleTypes';
@@ -13,7 +12,7 @@ defineOptions({ name: 'RolePermissionList' });
 
 // Estado local
 const roles = ref<Role[]>([]);
-const allPermissions = ref<Permission[]>([]); // Podrías usarlo más adelante si lo necesitas
+const allPermissions = ref<Permission[]>([]); // Podrías usarlo más adelante
 
 const headers = [
   { title: 'Nombre del Rol', value: 'name' },
@@ -22,9 +21,8 @@ const headers = [
   { title: 'Acciones', value: 'actions', sortable: false },
 ];
 
-// Router y composables
 const router = useRouter();
-const { showErrorNotification } = useNotification();
+const { showErrorNotification, showSuccessNotification } = useNotification();
 const { errorMessage, handleValidationError } = useFormValidation();
 
 /**
@@ -32,8 +30,7 @@ const { errorMessage, handleValidationError } = useFormValidation();
  */
 async function fetchRoles() {
   try {
-    // Desestructuramos el objeto que retorna el servicio:
-    // { roles: Role[], permissions: Permission[] }
+    // Desestructuramos el objeto que retorna el servicio: { roles, permissions }
     const { roles: fetchedRoles, permissions: fetchedPermissions } = await fetchRolesWithPermissions();
     roles.value = fetchedRoles;
     allPermissions.value = fetchedPermissions;
@@ -59,6 +56,40 @@ function goToRoleEdit(roleId: number) {
   }
 }
 
+/**
+ * Navega a la pantalla para crear un rol.
+ */
+function goToCreateRole() {
+  try {
+    router.push({ name: 'RoleCreate' }); // Asegúrate de tener definido esta ruta
+  } catch (error) {
+    handleValidationError(error);
+    if (errorMessage.value) {
+      showErrorNotification('Navigation Error', errorMessage.value);
+    }
+  }
+}
+
+/**
+ * Llama al endpoint para sincronizar rutas y permisos.
+ */
+async function syncRoutes() {
+  try {
+    const response = await syncRoutePermissions();
+    showSuccessNotification(
+      'Cambios Guardados',
+       response.output + ' - ' + response.message
+    );
+    // Opcional: volver a cargar los roles para ver cambios
+    await fetchRoles();
+  } catch (error) {
+    handleValidationError(error);
+    if (errorMessage.value) {
+      showErrorNotification('Sync Error', errorMessage.value);
+    }
+  }
+}
+
 // Cargar roles al montar el componente
 onMounted(fetchRoles);
 </script>
@@ -66,10 +97,21 @@ onMounted(fetchRoles);
 <template>
   <AdminWrapper>
     <div class="container mx-auto p-6">
-      <!-- Encabezado y botón de nuevo rol -->
+      <!-- Encabezado con botones -->
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Gestión de Roles y Permisos</h1>
-        <GoToRegisterButton />
+        <div class="flex gap-4">
+          <!-- Botón para crear un rol -->
+          <v-btn color="success" @click="goToCreateRole">
+            <v-icon left>mdi-plus</v-icon>
+            Crear Rol
+          </v-btn>
+          <!-- Botón para sincronizar rutas y permisos -->
+          <v-btn color="primary" @click="syncRoutes">
+            <v-icon left>mdi-sync</v-icon>
+            Sincronizar Rutas y Permisos
+          </v-btn>
+        </div>
       </div>
 
       <!-- Tabla de Roles -->

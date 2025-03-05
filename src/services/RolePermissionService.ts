@@ -42,3 +42,11 @@ export const fetchAllPermissions = async (): Promise<Permission[]> => {
   const { data } = await axios.get('/permissions');
   return data; // Asumiendo que el backend retorna directamente un array de permisos
 };
+
+/**
+ * Sincronizar rutas y permisos.
+ */
+export const syncRoutePermissions = async (): Promise<{ message: string; output: string }> => {
+  const { data } = await axios.post('/roles/with-permissions/sync');
+  return data;
+};
