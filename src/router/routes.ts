@@ -8,6 +8,7 @@ import TaskForm from '@/views/Task/TaskForm.vue';
 import Landing from '@/views/Landing.vue';
 import RolePermissionManager from '@/views/RolesPermissions/RolePermissionManager.vue';
 import RolePermissionEdit from '@/views/RolesPermissions/RolePermissionEdit.vue';
+import RoleCreate from '@/views/RolesPermissions/RoleCreate.vue'; // Importa el nuevo componente
 
 export const routes = [
   {
@@ -79,5 +80,12 @@ export const routes = [
     component: RolePermissionEdit,
     meta: { requiresAuth: true, sidebar: false },
     props: true,
+  },
+  // Nueva ruta para crear un rol:
+  {
+    path: '/roles/create',
+    name: 'RoleCreate',
+    component: RoleCreate,
+    meta: { requiresAuth: true, sidebar: false },
   },
 ];

@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, defineOptions } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchRolesWithPermissions, syncRoutePermissions } from '@/services/RolePermissionService';
 import { useNotification } from '@/composables/useNotification';
 import { useFormValidation } from '@/composables/useFormValidation';
 import type { Role, Permission } from '@/types/RoleTypes';
 import AdminWrapper from '@/components/AdminWrapper.vue';
-
-// (Opcional) Asigna nombre al componente
-defineOptions({ name: 'RolePermissionList' });
 
 // Estado local
 const roles = ref<Role[]>([]);
